@@ -1,5 +1,7 @@
 # wrapperbuilder
 
+The interesting part is in ./tests/User.spec.ts
+
 ## Project setup
 ```
 npm install
