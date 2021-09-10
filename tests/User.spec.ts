@@ -9,7 +9,19 @@ class WrapperBuilder {
     findById: jest.fn().mockReturnValue({ firstname: 'John', lastname: 'Doe' }),
   };
 
-  set(params: Record<string, any>) {
+  static buildWith(params?: Partial<Record<keyof WrapperBuilder, any>>) {
+    const instance = new WrapperBuilder();
+
+    if (params) {
+      instance.set(params);
+    }
+
+    return instance.createWrapper();
+  }
+
+  static build = WrapperBuilder.buildWith; // syntactic sugar
+
+  private set(params: Record<string, any>) {
     Object.entries(params).forEach(param => {
       const [key, value] = param as [keyof WrapperBuilder, Record<string, any> | Function];
 
@@ -24,19 +36,7 @@ class WrapperBuilder {
     });
   }
 
-  static buildWith(params?: Record<string, any>) {
-    const instance = new WrapperBuilder();
-
-    if (params) {
-      instance.set(params);
-    }
-
-    return instance.createWrapper();
-  }
-
-  static build = WrapperBuilder.buildWith; // syntactic sugar
-
-  createWrapper() {
+  private createWrapper() {
     const { data, propsData, favoriteService, userService } = this;
 
     return shallowMount<UserComponent>(UserComponent, {
