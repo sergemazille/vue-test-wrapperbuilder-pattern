@@ -1,55 +1,25 @@
-import { shallowMount } from '@vue/test-utils';
 import UserComponent from '@/components/User.vue';
+import WrapperBuilder from './support/WrapperBuilder';
 
-class WrapperBuilder {
-  data: any = () => ({});
-  propsData: any = { userId: 0 };
-  favoriteService: any = { save: jest.fn() };
-  userService: any = {
-    findById: jest.fn().mockReturnValue({ firstname: 'John', lastname: 'Doe' }),
+const createWrapperBuilder = () => {
+  const defaults: any = {
+    propsData: { userId: 0 },
+
+    provide: {
+      favoriteService: { save: jest.fn() },
+      userService: {
+        findById: jest.fn().mockReturnValue({ firstname: 'John', lastname: 'Doe' }),
+      },
+    },
   };
 
-  static buildWith(params?: Partial<Record<keyof WrapperBuilder, any>>) {
-    const instance = new WrapperBuilder();
-
-    if (params) {
-      instance.set(params);
-    }
-
-    return instance.createWrapper();
-  }
-
-  static build = WrapperBuilder.buildWith; // syntactic sugar
-
-  private set(params: Record<string, any>) {
-    Object.entries(params).forEach(param => {
-      const [key, value] = param as [keyof WrapperBuilder, Record<string, any> | Function];
-
-      if (typeof value === 'function') {
-        this[key] = value;
-      } else {
-        this[key] = {
-          ...this[key],
-          ...value,
-        };
-      }
-    });
-  }
-
-  private createWrapper() {
-    const { data, propsData, favoriteService, userService } = this;
-
-    return shallowMount<UserComponent>(UserComponent, {
-      data,
-      propsData,
-      provide: { favoriteService, userService },
-    });
-  }
-}
+  return new WrapperBuilder<UserComponent>(UserComponent, defaults);
+};
 
 describe('User', () => {
   it('should instantiate a User component', () => {
-    const wrapper = WrapperBuilder.build();
+    const wrapperBuilder = createWrapperBuilder();
+    const wrapper = wrapperBuilder.build();
 
     expect(wrapper.exists()).toBeTruthy();
   });
@@ -57,9 +27,10 @@ describe('User', () => {
   it('should find a user by its id', () => {
     const userService = { findById: jest.fn().mockReturnValue({}) };
     const propsData = { userId: 12345 };
-    const params = { userService, propsData };
+    const params = { propsData, provide: { userService } };
 
-    WrapperBuilder.buildWith(params);
+    const wrapperBuilder = createWrapperBuilder();
+    wrapperBuilder.buildWith(params);
 
     expect(userService.findById).toHaveBeenCalledWith(12345);
   });
@@ -67,9 +38,10 @@ describe('User', () => {
   it('should save a user as a favorite', () => {
     const userService = { findById: jest.fn().mockReturnValueOnce('Fake user') };
     const favoriteService = { save: jest.fn() };
-    const params = { userService, favoriteService };
+    const params = { provide: { userService, favoriteService } };
 
-    const wrapper = WrapperBuilder.buildWith(params);
+    const wrapperBuilder = createWrapperBuilder();
+    const wrapper = wrapperBuilder.buildWith(params);
 
     const buttonWrapper = wrapper.find('button');
     buttonWrapper.trigger('click');
@@ -82,7 +54,8 @@ describe('User', () => {
   it('should display a greeting message', () => {
     const data = () => ({ greetingMessage: 'Greetings' });
 
-    const wrapper = WrapperBuilder.buildWith({ data });
+    const wrapperBuilder = createWrapperBuilder();
+    const wrapper = wrapperBuilder.buildWith({ data });
 
     expect(wrapper.text()).toContain('Greetings');
   });

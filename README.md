@@ -1,6 +1,6 @@
 # wrapperbuilder
 
-The interesting part is in ./tests/User.spec.ts
+The interesting parts are in ./tests
 
 ## Project setup
 ```
