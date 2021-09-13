@@ -21,29 +21,23 @@ export default class WrapperBuilder<T extends Vue> {
   build = this.buildWith; // syntactic sugar
 
   private set(params: Record<string, any>) {
-    Object.entries(params).forEach(param => {
-      const [key, value] = param as [keyof WrapperBuilder<T>, Record<string, any> | Function];
+    this.data = params.data || this.data;
+    this.provide = params.provide ? this.updateProvideWith(params.provide) : this.provide;
 
-      switch (key) {
-        case 'data':
-          this.data = value;
-          break;
+    Object.entries(params)
+      .filter(([key]) => key !== 'data' && key !== 'provide')
+      .forEach(param => {
+        const [key, value] = param as [keyof WrapperBuilder<T>, Record<string, any> | Function];
 
-        case 'provide':
-          this.provide = this.updateProvideWith(value);
-          break;
-
-        default:
-          this[key] = {
-            ...this[key],
-            ...value,
-          };
-      }
-    });
+        this[key] = {
+          ...this[key],
+          ...value,
+        };
+      });
   }
 
-  private updateProvideWith(value: Record<string, any>) {
-    return Object.entries(value).reduce((acc, [propertyKey, propertyValue]) => {
+  private updateProvideWith(provideParam: Record<string, any>) {
+    return Object.entries(provideParam).reduce((acc, [propertyKey, propertyValue]) => {
       const doesComponentHaveProperty = propertyKey in this.ComponentVue.options.inject;
 
       if (!doesComponentHaveProperty) {
