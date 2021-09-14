@@ -12,13 +12,11 @@ export default class WrapperBuilder<T extends Vue> {
     if (defaults) this.set(defaults);
   }
 
-  buildWith(params?: Partial<Record<keyof WrapperBuilder<T>, any>>): Wrapper<T, Element> {
+  build(params?: Partial<Record<keyof WrapperBuilder<T>, any>>): Wrapper<T, Element> {
     if (params) this.set(params);
 
     return this.createWrapper();
   }
-
-  build = this.buildWith; // syntactic sugar
 
   private set(params: Record<string, any>) {
     this.data = params.data || this.data;

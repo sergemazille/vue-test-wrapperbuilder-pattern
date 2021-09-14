@@ -1,7 +1,7 @@
 import UserComponent from '@/components/User.vue';
 import WrapperBuilder from './support/WrapperBuilder';
 
-const createWrapperBuilder = () => {
+const createWrapper = (params?: Partial<Record<keyof WrapperBuilder<UserComponent>, any>>) => {
   const defaults: any = {
     propsData: { userId: 0 },
 
@@ -13,13 +13,13 @@ const createWrapperBuilder = () => {
     },
   };
 
-  return new WrapperBuilder<UserComponent>(UserComponent, defaults);
+  const wrapperBuilder = new WrapperBuilder<UserComponent>(UserComponent, defaults);
+  return wrapperBuilder.build(params);
 };
 
 describe('User', () => {
   it('should instantiate a User component', () => {
-    const wrapperBuilder = createWrapperBuilder();
-    const wrapper = wrapperBuilder.build();
+    const wrapper = createWrapper();
 
     expect(wrapper.exists()).toBeTruthy();
   });
@@ -29,8 +29,7 @@ describe('User', () => {
     const propsData = { userId: 12345 };
     const params = { propsData, provide: { userService } };
 
-    const wrapperBuilder = createWrapperBuilder();
-    wrapperBuilder.buildWith(params);
+    createWrapper(params);
 
     expect(userService.findById).toHaveBeenCalledWith(12345);
   });
@@ -40,8 +39,7 @@ describe('User', () => {
     const favoriteService = { save: jest.fn() };
     const params = { provide: { userService, favoriteService } };
 
-    const wrapperBuilder = createWrapperBuilder();
-    const wrapper = wrapperBuilder.buildWith(params);
+    const wrapper = createWrapper(params);
 
     const buttonWrapper = wrapper.find('button');
     buttonWrapper.trigger('click');
@@ -54,8 +52,7 @@ describe('User', () => {
   it('should display a greeting message', () => {
     const data = () => ({ greetingMessage: 'Greetings' });
 
-    const wrapperBuilder = createWrapperBuilder();
-    const wrapper = wrapperBuilder.buildWith({ data });
+    const wrapper = createWrapper({ data });
 
     expect(wrapper.text()).toContain('Greetings');
   });
